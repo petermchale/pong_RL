@@ -30,3 +30,16 @@ def display_frames(frames):
 
     anim = animation.FuncAnimation(plt.gcf(), animate, frames = len(frames), interval=50)
     display(display_animation(anim, default_mode='once'))
+
+def process(image):
+    """ convert the 210x160x3 uint8 frame into a 80 x 80 matrix"""
+    image = image[35:195] # crop
+    image = image[::2, ::2, :] # downsample
+    image = image[:, :, 0] # remove_color
+    image[image == 144] = 0 # erase background (background type 1)
+    image[image == 109] = 0 # erase background (background type 2)
+    image[image != 0] = 1 # everything else (paddles, ball) just set to 1
+    return image
+
+
+
