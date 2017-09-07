@@ -22,3 +22,13 @@ def rewards_partial_sum(R, gamma):
 def initialize_successive_images(env): 
     # calls `reset` on whatever object `env` refers to    
     return env.reset(), None 
+
+import os
+
+def append_log_file(log_file_name, trajectory):
+    """ Write diagnostic information to a log file"""
+
+    with open(log_file_name, 'a') as flog:
+        flog.write('trajectory = ' + str(trajectory) + '\n')
+        flog.flush()  # flush the program buffer
+        os.fsync(flog.fileno()) # flush the OS buffer
