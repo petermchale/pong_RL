@@ -1,14 +1,3 @@
-def generate_frames(env, number_time_points):
-    env.reset() 
-    frames = []
-    for t in range(number_time_points):
-        frames.append(env.render(mode = 'rgb_array'))
-        action = env.action_space.sample()
-        observation, reward, done, info = env.step(action)
-    env.render(close=True)
-    return frames
-
-
 import matplotlib.pyplot as plt
 from matplotlib import animation
 from IPython.display import display
