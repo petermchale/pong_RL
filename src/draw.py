@@ -3,13 +3,11 @@ from matplotlib import animation
 from IPython.display import display
 from JSAnimation.IPython_display import display_animation
 
-'''
-Install Jake Vanderplas' [JSAnimation](https://github.com/jakevdp/JSAnimation) package as follows:
-git clone https://github.com/jakevdp/JSAnimation
-cd JSAnimation
-python setup.py install
-[this installs in the currently active conda env]
-'''
+# Install Jake Vanderplas' [JSAnimation](https://github.com/jakevdp/JSAnimation) package as follows:
+# git clone https://github.com/jakevdp/JSAnimation
+# cd JSAnimation
+# python setup.py install
+# [this installs in the currently active conda env]
 
 
 def display_frames(frames):
