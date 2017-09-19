@@ -39,4 +39,3 @@ if __name__ == '__main__':
     simulate_with_trained_policy(weights_filename='data/weights.cPickle',
                                  number_time_points=50000,
                                  random_seed=0)
-    # simulate_with_random_policy(number_time_points=5000, render=True)
