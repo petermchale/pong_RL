@@ -18,29 +18,31 @@ def vstack(time_course):
         time_course[key] = np.vstack(value)
 
 
-def train(gamma, alpha, weights_filename, beta, batch_size, num_hidden_neurons,
-          initialize_weights_using_checkpoint=False, render=True, print_diagnostics=True, random_seed=None):
+def train(gamma, alpha, eta, weights_filename, beta, num_hidden_neurons,
+          initialize_weights_using_checkpoint=False, render=True, log_file_name=None, random_seed=None):
 
     prng, env, weights, image, image_processed_previous = \
         policy.initialize_training(weights_filename, random_seed, num_hidden_neurons,
                                    initialize_weights_using_checkpoint)
-    if print_diagnostics:
-        print 'gamma = ', gamma
-        print 'alpha = ', alpha
-        print 'beta = ', beta
-        print 'batch_size = ', batch_size
-        print 'num_hidden_neurons = ', num_hidden_neurons
-        print 'initialize_weights_using_checkpoint = ', initialize_weights_using_checkpoint
-        print 'random_seed = ', random_seed
+
+    if log_file_name:
+        ut.append_log_file(log_file_name, 'gamma = %f \n' % gamma)
+        ut.append_log_file(log_file_name, 'alpha = %f \n' % alpha)
+        ut.append_log_file(log_file_name, 'beta = %f \n' % beta)
+        ut.append_log_file(log_file_name, 'eta = %f \n' % eta)
+        ut.append_log_file(log_file_name, 'num_hidden_neurons = %d \n' % num_hidden_neurons)
+        ut.append_log_file(log_file_name, 'initialize_weights_using_checkpoint = %d \n' %
+                           initialize_weights_using_checkpoint)
+        ut.append_log_file(log_file_name, 'random_seed = %f \n' % random_seed)
+        ut.append_log_file(log_file_name, '\n')
 
     trajectory_reward__moving_average = None
     time_course = initialize_time_course()
     gradient_likelihood_minibatch = initialize_gradient_likelihood_minibatch(weights)
+    g2__moving_average = {k: np.zeros_like(v) for k, v in weights.iteritems()}
     trajectory = 1
 
-    rmsprop_cache = {k: np.zeros_like(v) for k, v in weights.iteritems()}  # rmsprop memory
-
-    while trajectory < 1000:
+    while True:
         image, image_processed_previous, s, h, delta3, pi, reward, trajectory_finished = \
             policy.step_with_neural_network(image, image_processed_previous, env, weights, prng, render)
 
@@ -55,50 +57,47 @@ def train(gamma, alpha, weights_filename, beta, batch_size, num_hidden_neurons,
 
             time_course_discounted_reward = ut.compute_discounted_rewards(time_course['reward'], gamma)
 
-            # # standardize discounted rewards to have zero mean and unit variance
-            # # (helps control the gradient estimator variance?)
-            # time_course_discounted_reward -= np.mean(time_course_discounted_reward)
-            # time_course_discounted_reward /= np.std(time_course_discounted_reward)
-
             delta3_hat = time_course['delta3'] * time_course_discounted_reward
             gradient_likelihood = \
                 policy.compute_gradient_likelihood(delta3_hat, time_course['h'], time_course['s'], weights)
 
-            if print_diagnostics:
-                trajectory_reward = np.sum(time_course['reward'])
-                # exponential moving average
-                trajectory_reward__moving_average = trajectory_reward if trajectory_reward__moving_average is None \
-                    else beta * trajectory_reward + (1.0 - beta) * trajectory_reward__moving_average
-                H = time_course['h']
-                hidden_dead_neuron_fraction = len(H[~(H > 0.0)]) / float(H.size)
-                print 'trajectory = %3d' % trajectory, \
-                    '| reward = %d' % trajectory_reward, \
-                    '| <reward> = %.3f' % trajectory_reward__moving_average, \
-                    '| L = %.3f' % np.sum(np.log(time_course['pi']) * time_course_discounted_reward), \
-                    '| frac. of hidden neurons that are dead = ', hidden_dead_neuron_fraction
+            trajectory_reward = np.sum(time_course['reward'])
+            # exponential moving average
+            trajectory_reward__moving_average = trajectory_reward if trajectory_reward__moving_average is None \
+                else beta * trajectory_reward + (1.0 - beta) * trajectory_reward__moving_average
+            L = np.sum(np.log(time_course['pi']) * time_course_discounted_reward)
+            H = time_course['h']
+            fraction_of_hidden_neurons_that_are_dead = len(H[~(H > 0.0)]) / float(H.size)
+            print '%6d\t' % trajectory, \
+                '%d\t' % trajectory_reward, \
+                '%.3f\t' % trajectory_reward__moving_average, \
+                '%4.3f\t' % L, \
+                '%.3f' % fraction_of_hidden_neurons_that_are_dead
 
             time_course = initialize_time_course()
 
             for layer in gradient_likelihood:
                 gradient_likelihood_minibatch[layer] += gradient_likelihood[layer]
 
-            if trajectory % batch_size == 0:  # update weights using a batch of trajectories
+            if trajectory % 10 == 0:  # update weights using a batch of trajectories
                 for layer in weights:
-                    # decay_rate = 0.99  # decay factor for RMSProp leaky sum of grad^2
-                    # learning_rate = 1e-3
-                    # g = gradient_likelihood_minibatch[layer]
-                    # rmsprop_cache[layer] = decay_rate * rmsprop_cache[layer] + (1.0 - decay_rate) * g ** 2
-                    # weights[layer] += learning_rate * g / (np.sqrt(rmsprop_cache[layer]) + 1e-5)
-                    weights[layer] += alpha * gradient_likelihood_minibatch[layer] / float(batch_size)
+                    g = gradient_likelihood_minibatch[layer]
+                    g2__moving_average[layer] = eta * (g ** 2) + (1.0 - eta) * g2__moving_average[layer]
+                    weights[layer] += alpha * g / (np.sqrt(g2__moving_average[layer]) + 1e-5)
 
                 gradient_likelihood_minibatch = initialize_gradient_likelihood_minibatch(weights)
 
-                print datetime.now()
-                print 'batch: trajectory = ', trajectory, \
-                    'mean W1 = ', weights[1].mean(), 'mean W2 = ', weights[2].mean()
-                print 'std dev W1 = ', weights[1].std(), 'std dev W2 = ', weights[2].std()
-                print 'min W2 = ', weights[2].min(), 'max W2 = ', weights[2].max()
-                print 'batch: p = ', policy.forward_propagate(s, weights)[0]
+                if log_file_name:
+                    ut.append_log_file(log_file_name, str(datetime.now()) + '\n')
+                    ut.append_log_file(log_file_name, 'trajectory = %d \n' % trajectory)
+                    ut.append_log_file(log_file_name, 'mean W1 = %f \n' % weights[1].mean())
+                    ut.append_log_file(log_file_name, 'mean W2 = %f \n' % weights[2].mean())
+                    ut.append_log_file(log_file_name, 'std dev W1 = %f \n' % weights[1].std())
+                    ut.append_log_file(log_file_name, 'std dev W2 = %f \n' % weights[2].std())
+                    ut.append_log_file(log_file_name, 'min W2 = %f \n' % weights[2].min())
+                    ut.append_log_file(log_file_name, 'max W2 = %f \n' % weights[2].max())
+                    ut.append_log_file(log_file_name, 'p = %f \n' % policy.forward_propagate(s, weights)[0])
+                    ut.append_log_file(log_file_name, '\n')
 
             if trajectory % 100 == 0:  # save weights
                 with open(weights_filename, 'wb') as file_out:
@@ -109,6 +108,6 @@ def train(gamma, alpha, weights_filename, beta, batch_size, num_hidden_neurons,
 
 if __name__ == '__main__':
 
-        train(gamma=0.99, alpha=1e-4, weights_filename='weights.cPickle',
-              beta=0.5, batch_size=10, num_hidden_neurons=200,
-              initialize_weights_using_checkpoint=False, render=False, random_seed=0)
+        train(gamma=0.99, alpha=1e-3, eta=0.01,
+              weights_filename='data/weights.cPickle', beta=0.01, num_hidden_neurons=200,
+              initialize_weights_using_checkpoint=False, render=False, log_file_name='data/train.log', random_seed=0)
