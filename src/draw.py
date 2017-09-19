@@ -13,7 +13,7 @@ def display_frames(frames):
         patch.set_data(frames[i])
 
     anim = animation.FuncAnimation(plt.gcf(), animate, frames=len(frames), interval=50)
-    display(display_animation(anim, default_mode='once'))
+    display(display_animation(anim, default_mode='once', fps=60))
 
 
 def process(image):
