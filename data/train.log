@@ -1,0 +1,18 @@
+gamma = 0.990000 
+alpha = 0.001000 
+beta = 0.010000 
+eta = 0.010000 
+num_hidden_neurons = 200 
+initialize_weights_using_checkpoint = 0 
+random_seed = 0.000000 
+
+2017-09-19 00:35:42.139965
+trajectory = 10 
+mean W1 = 0.000009 
+mean W2 = 0.004212 
+std dev W1 = 0.014138 
+std dev W2 = 0.070420 
+min W2 = -0.181575 
+max W2 = 0.184712 
+p = 0.401518 
+
