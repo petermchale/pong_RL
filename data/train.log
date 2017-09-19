@@ -1,3 +1,5 @@
+[2017-09-19 01:08:30,861] Making new env: Pong-v0
+
 gamma = 0.990000 
 alpha = 0.001000 
 beta = 0.010000 
@@ -3535,4 +3537,13 @@ std dev W2 = 0.212881
 min W2 = -0.374141 
 max W2 = 0.275364 
 p = 0.998650 
+
+Traceback (most recent call last):
+  File "./src/train.py", line 113, in <module>
+    initialize_weights_using_checkpoint=False, render=False, log_file_name='data/train.log', random_seed=0)
+  File "./src/train.py", line 58, in train
+    time_course_discounted_reward = ut.compute_discounted_rewards(time_course['reward'], gamma)
+  File "/Users/ccbs/peter mchale/pong_RL-master/src/utility.py", line 21, in compute_discounted_rewards
+    game_reward *= gamma
+TypeError: unsupported operand type(s) for *=: 'NoneType' and 'float'
 

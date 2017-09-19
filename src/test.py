@@ -18,7 +18,7 @@ def simulate_with_random_policy(number_time_points,
     return frames
 
 
-def simulate_with_trained_policy(weights_filename, number_time_points,
+def simulate_with_trained_policy(weights_filename, number_time_points, render,
                                  random_seed=None):
 
     prng, env, weights, image, image_processed_previous = \
@@ -29,7 +29,7 @@ def simulate_with_trained_policy(weights_filename, number_time_points,
         frames.append(env.render(mode='rgb_array'))
         image, image_processed_previous = \
             policy.step_with_neural_network(image, image_processed_previous, env, weights, prng,
-                                            render=True, training=False)
+                                            render, training=False)
     env.render(close=True)
     return frames
 
@@ -38,4 +38,5 @@ if __name__ == '__main__':
 
     simulate_with_trained_policy(weights_filename='data/weights.cPickle',
                                  number_time_points=50000,
+                                 render=True,
                                  random_seed=0)
