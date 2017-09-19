@@ -1,4 +1,4 @@
-![](images/pong animation.gif)
+<img src="images/pong animation.gif">
 
 # Playing Pong using Reinforcement Learning
 Reinforcement Learning is a hot field right now, with exciting applications in robotics and self-driving cars. 
