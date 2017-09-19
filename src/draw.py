@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 from matplotlib import animation
 from IPython.display import display
 from JSAnimation.IPython_display import display_animation
+import gym  # Uses OpenAI Gym
 
 # Install Jake Vanderplas' [JSAnimation](https://github.com/jakevdp/JSAnimation) package as follows:
 # git clone https://github.com/jakevdp/JSAnimation
@@ -30,3 +31,12 @@ def process(image):
     image[image == 109] = 0  # erase background (background type 2)
     image[image != 0] = 1  # everything else (paddles, ball) just set to 1
     return image
+
+
+def sample_image(random_seed):
+
+    env = gym.make('Pong-v0')
+    env.seed(random_seed)
+    env.reset()
+    return env.render(mode='rgb_array')
+
