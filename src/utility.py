@@ -22,7 +22,7 @@ def compute_discounted_rewards(R, gamma):
         R_disc[t] = game_reward
 
     # standardize discounted rewards to have zero mean and unit variance
-    # (helps control the gradient estimator variance?)
+    # (helps control the gradient estimator variance)
     R_disc -= np.mean(R_disc)
     R_disc /= np.std(R_disc)
 
