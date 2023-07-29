@@ -6,8 +6,7 @@ I present a rigorous mathematical derivation of a reinforcement learning algorit
 This AI does not rely on hand-engineered rules or features; 
 instead, it masters the environment by looking at raw pixels and learning from experience, just as humans do.
 A full description is contained in the Jupyter notebook `analysis.ipynb`. 
-To see the videos embedded in the notebook, please use nbviewer 
-[here](http://nbviewer.jupyter.org/github/petermchale/pong_RL/blob/master/analysis.ipynb).
+To see the videos embedded in the notebook, please see the [rendered version of the notebook](https://petermchale.github.io/pong_RL.html). 
 
 # Installation 
 On Mac OS X 10.11.6 and 10.12.6, one can set up an environment to simulate Pong by issuing the commands
